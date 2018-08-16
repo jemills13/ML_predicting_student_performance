@@ -54,7 +54,22 @@ trainset <- mydata[ trainIndex,]
 testset  <- mydata[-trainIndex,] #20% of data is test
 str(mydata)
 
+#########################
+### functions ##########
+#########################
 
+def confusion_mx_analysis(testset$newG3,pred){
+  table.b <- table(testset$newG3, pred,dnn=c("Actual", "Predicted"))
+  confusionMatrix(testset$newG3, pred)
+  table.b
+  #
+  # #error rate
+  mean(testset$newG3 != pred)
+  # # type I error
+  table.b[1, 2] / sum(table.b[1, ])
+  # # type II error
+  table.b[2, 1] / sum(table.b[2, ])
+}
 
 #########################
 ### treebag model########
@@ -64,19 +79,7 @@ fitControl <- trainControl(method = "oob",number = 10)
 gbmFit1 <- train(newG3 ~ ., data = trainset , method = "treebag",
                  trControl = fitControl, verbose = FALSE,keepX=TRUE)
 treebag.pred <- predict(gbmFit1,testset)
-table.b <- table(testset$newG3, treebag.pred,dnn=c("Actual", "Predicted"))
-confusionMatrix(testset$newG3, treebag.pred)
-table.b
-#
-# #error rate
-mean(testset$newG3 != treebag.pred)
-# # type I error
-table.b[1, 2] / sum(table.b[1, ])
-# # type II error
-table.b[2, 1] / sum(table.b[2, ])
-# confusionMatrix(testset$newG3,treebag.pred)
-
-
+confusion_mx_analysis(testset$newG3,treebag.pred)
 
 ################################
 ####SVM code####################
@@ -100,15 +103,7 @@ svm_Radial_Grid <- train(newG3 ~., data = trainset, na.action = na.exclude, meth
                          tuneLength = 10)
 test_pred <- predict(svm_Radial_Grid, newdata = testset)
 svm_Radial_Grid
-confusionMatrix(testset$newG3, test_pred)
-table.b = table(testset$newG3, test_pred)
-table.b
-#error rate
-mean(testset$newG3 != test_pred)
-# type I error
-table.b[1, 2] / sum(table.b[1, ])
-# type II error
-table.b[2, 1] / sum(table.b[2, ])
+confusion_mx_analysis(testset$newG3,test_pred)
 
 
 ################################
@@ -119,18 +114,8 @@ fitControl <- trainControl(method = "repeatedcv",number = 10,repeats = 10)
 gbmFit1 <- train(newG3 ~ ., data = trainset , method = "gbm", 
                  trControl = fitControl, verbose = FALSE)
 boost.pred <- predict(gbmFit1,testset)
-table.b <- table(testset$newG3, boost.pred,dnn=c("Actual", "Predicted"))
-table.b
-confusionMatrix(testset$newG3, boost.pred)
 
-#error rate
-mean(testset$newG3 != boost.pred)
-# type I error
-table.b[1, 2] / sum(table.b[1, ])
-# type II error
-table.b[2, 1] / sum(table.b[2, ])
-
-
+confusion_mx_analysis(testset$newG3,testset)
 
 ################################
 ####Random Forrest Model########
@@ -202,17 +187,4 @@ rfBestModel <- randomForest(formula=trainset$newG3 ~ .,data=trainset,ntree=min.e
                             importance=TRUE,localImp=TRUE,replace=FALSE,cutoff=c(bestcutoff,1-bestcutoff),na.action=na.exclude)
 
 prtestBest <- predict(rfBestModel, newdata=(testset))
-confusionMatrix(testset$newG3, prtestBest)
-saccuracy_fun(testset$newG3, prtestBest)
-
-
-table.b <- table(testset$newG3, prtestBest,dnn=c("Actual", "Predicted"))
-table.b
-#
-# #error rate
-mean(testset$newG3 != prtestBest)
-# # type I error
-table.b[1, 2] / sum(table.b[1, ])
-# # type II error
-table.b[2, 1] / sum(table.b[2, ])
-             
+confusion_mx_analysis(testset$newG3,prtestBest)
