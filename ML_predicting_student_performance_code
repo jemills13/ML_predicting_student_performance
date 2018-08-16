@@ -12,25 +12,22 @@ The objective of the model is to identify failing students early and provide add
 #######################
 #Prepare data
 #######################
-##Commented link: https://archive.ics.uci.edu/ml/datasets/student+performance
+##Commented link which contains the dataset: https://archive.ics.uci.edu/ml/datasets/student+performance
 
-d1=read.table("student-mat.csv",sep=",",header=TRUE)
+d1=read.table("student-mat.csv",sep=",",header=TRUE) #csv file can be found in link above
 d2=read.table("student-por.csv",sep=",",header=TRUE
-d3=rbind(d1,d2,by=c("school","sex","age","address","famsize","Pstatus","Medu","Fedu","Mjob","Fjob","reason","nursery","internet"))
+d3=rbind(d1,d2,by=c("school","sex","age","address","famsize","Pstatus","Medu","Fedu","Mjob","Fjob","reason","nursery","internet")) #The two data frames must have the same variables, which they do
 
 #d3 = d3[,-c(31,32)] # delete G1, G2
 old_G3 = d3[,31]
-newG3 = rep("Pass",length(old_G3))
-newG3[old_G3 <= 11] <- 'Failed'
+newG3 = rep("Pass",length(old_G3)) #preparing a 2 class dep var 
+newG3[old_G3 <= 11] <- 'Failed' #preparing a 2 class dep var 
 
-mydata = cbind(d3[,-32:-33],newG3)
+mydata = cbind(d3[,-32:-33],newG3) #add G3 to the end of the dataframe
 
-
-#mydata = cbind(d3[,-32:-33],newG3)
-
-mydata = na.omit(mydata)
-mydata$age = as.numeric(mydata$age)
-mydata$absences = as.numeric(mydata$absences)
+mydata = na.omit(mydata) #omit nas
+mydata$age = as.numeric(mydata$age) #factor conversion
+mydata$absences = as.numeric(mydata$absences) 
 mydata$G1 = as.numeric(mydata$G1)
 
 ######Converting characters to factors
@@ -52,9 +49,9 @@ mydata$health = as.factor(mydata$health)
 require(caret)
 #splitting data
 set.seed(5072)
-trainIndex <- createDataPartition(mydata$newG3, p = .8, list = FALSE,times = 1)
+trainIndex <- createDataPartition(mydata$newG3, p = .8, list = FALSE,times = 1) #80% of data is train
 trainset <- mydata[ trainIndex,]
-testset  <- mydata[-trainIndex,]
+testset  <- mydata[-trainIndex,] #20% of data is test
 str(mydata)
 
 
@@ -218,18 +215,4 @@ mean(testset$newG3 != prtestBest)
 table.b[1, 2] / sum(table.b[1, ])
 # # type II error
 table.b[2, 1] / sum(table.b[2, ])
-              
-
-
-
-##########
-####ROC###
-##########
-fitControl <- trainControl(method = "repeatedcv",number = 10)
-gbmFit1 <- train(newG3 ~ ., data = trainset , method = "rocc",
-                 trControl = fitControl,keepX=TRUE)
-treebag.pred <- predict(gbmFit1,testset)
-table.b <- table(testset$newG3, treebag.pred,dnn=c("Actual", "Predicted"))
-confusionMatrix(testset$newG3, treebag.pred)
-table.b
-#
+             
